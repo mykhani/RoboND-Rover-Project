@@ -1,6 +1,7 @@
 [//]: # (Image References)
 [image_0]: ./misc/rover_image.jpg
 [image1]: ./images/detecting_rocks.png
+[image2]: ./images/detecting_obstacles.png
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 # Search and Sample Return Project (solution)
 
@@ -32,7 +33,24 @@ def detect_rocks(img):
 Below is the image showing rock detection.
 ![detecting rocks][image1]
 ##### Detecting Obstacles
-
+For detecting obstacles, I used the same function as that for detecting navigable terrain with slight change i.e. selecting all the pixels that are not navigable terrain or more specifically, falling below the color threshold for navigable path.
+```python
+def detect_obstacles(img, rgb_thresh=(160, 160, 160)):
+    # Create an array of zeros same xy size as img, but single channel
+    color_select = np.zeros_like(img[:,:,0])
+    # Require that each pixel be below all three threshold values in RGB
+    # below_thresh will now contain a boolean array with "True"
+    # where threshold was met
+    below_thresh = (img[:,:,0] < rgb_thresh[0]) \
+                & (img[:,:,1] < rgb_thresh[1]) \
+                & (img[:,:,2] < rgb_thresh[2])
+    # Index the array of zeros with the boolean array and set to 1
+    color_select[below_thresh] = 1
+    # Return the binary image
+    return color_select
+```
+Below is the image showing rocks detection.
+![detecting obstacles][image2]
 #### 2. Image processing
 
 ### Autonomous Navigation and Mapping
