@@ -1,5 +1,6 @@
 [//]: # (Image References)
 [image_0]: ./misc/rover_image.jpg
+[image1]: ./images/detecting_rocks.png
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 # Search and Sample Return Project (solution)
 
@@ -28,6 +29,8 @@ def detect_rocks(img):
     
     return mask
 ```
+Below is the image showing rock detection.
+![detecting rocks][image1]
 ##### Detecting Obstacles
 
 #### 2. Image processing
