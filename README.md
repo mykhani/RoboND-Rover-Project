@@ -52,7 +52,52 @@ def detect_obstacles(img, rgb_thresh=(160, 160, 160)):
 Below is the image showing rocks detection.
 ![detecting obstacles][image2]
 #### 2. Image processing
+All the image process is performed in function process_image(). Here, the first step is to extract the x,y co-ordinates of the position and yaw angle of the robot in world reference frame. The index of the current image frame is used to map robot telemetry data to a particular frame.
+```python
+    xpos = data.xpos[data.count]
+    ypos = data.ypos[data.count]
+    yaw = data.yaw[data.count]
+```
+The next step is perform the perspective transform, i.e. to convert the robot's first person perspective based camera image to a top view based perspective and them perform path, rock and obstacle detection.
+```python
+    # 2) Apply perspective transform
+    warped = perspect_transform(img, source, destination)
+    # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
+    threshed = color_thresh(warped, (160, 160, 160))
+    rocks_select = detect_rocks(warped)
+    obstacles_select = detect_obstacles(warped, (160, 160, 160))
+```
+Next, the x,y position of individual pixels of navigable path, rocks and obstacles is extracted from the image frame (given in robot body reference frame) and converted to world reference frame.
+```python
+    # 4) Convert thresholded image pixel values to rover-centric coords
+    xpix , ypix = rover_coords(threshed)
+    rock_xpix, rock_ypix = rover_coords(rocks_select)
+    obstacle_xpix, obstacle_ypix = rover_coords(obstacles_select)
+    
+    # 5) Convert rover-centric pixel values to world coords
+    obstacle_x_world, obstacle_y_world = pix_to_world(obstacle_xpix, obstacle_ypix, xpos, ypos, yaw, 200, 10)
+    navigable_x_world, navigable_y_world = pix_to_world(xpix, ypix, xpos, ypos, yaw, 200, 10)
+    rock_x_world, rock_y_world = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, 200, 10)
+```
+The world map image is populated by marking the obstacle pixels in the Red channel, rock pixels in Green and Navigable path in Blue channel.  
+```python
+    data.worldmap[obstacle_y_world, obstacle_x_world, 0] = 255    
+    data.worldmap[rock_y_world, rock_x_world, 1] = 255
+    data.worldmap[navigable_y_world, navigable_x_world, 2] = 255
+```
+Finally the camera image, the transformed image and world map is combined together into a larger image which is then overlayed on top of output video.
+```python
+    output_image[0:img.shape[0], 0:img.shape[1]] = img
+    # Let's create more images to add to the mosaic, first a warped image
+    # Add the warped image in the upper right hand corner
+    threshed_3d = np.dstack((threshed * 255, threshed * 0, threshed * 0))
+    output_image[0:img.shape[0], img.shape[1]:] = threshed_3d
 
+    # Overlay worldmap with ground truth map
+    map_add = cv2.addWeighted(data.worldmap, 1, data.ground_truth, 0.5, 0)
+    # Flip map overlay so y-axis points upward and add to output_image 
+    output_image[img.shape[0]:, 0:data.worldmap.shape[1]] = np.flipud(map_add)
+```
 ### Autonomous Navigation and Mapping
 #### 1. Implementing Perception Step
 #### 2. Launching the simulator
