@@ -2,6 +2,7 @@
 [image_0]: ./misc/rover_image.jpg
 [image1]: ./images/detecting_rocks.png
 [image2]: ./images/detecting_obstacles.png
+[image3]: ./images/settings.png
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 # Search and Sample Return Project (solution)
 
@@ -101,4 +102,6 @@ Finally the camera image, the transformed image and world map is combined togeth
 ### Autonomous Navigation and Mapping
 #### 1. Implementing Perception Step
 #### 2. Launching the simulator
+Below is the image of settings used while launching the simulator.
+![Simulator settings][image3]
 #### 3. Results
