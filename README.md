@@ -101,6 +101,89 @@ Finally the camera image, the transformed image and world map is combined togeth
 ```
 ### Autonomous Navigation and Mapping
 #### 1. Implementing Perception Step
+Here's the final implementation of perception step.
+```python
+def perception_step(Rover):
+    # Perform perception steps to update Rover()
+    # TODO: 
+    # NOTE: camera image is coming to you in Rover.img
+    # 1) Define source and destination points for perspective transform
+	# These source and destination points are defined to warp the image	
+	# to a grid where each 10x10 pixel square represents 1 square meter
+	# The destination box will be 2*dst_size on each side
+	dst_size = 5 
+	# Set a bottom offset to account for the fact that the bottom of the image 
+	# is not the position of the rover but a bit in front of it
+	# this is just a rough guess, feel free to change it!
+	bottom_offset = 6
+	image = Rover.img
+	xpos = Rover.pos[0]
+	ypos = Rover.pos[1]
+	yaw = Rover.yaw
+	source = np.float32([[14, 140], [301 ,140],[200, 96], [118, 96]])
+	destination = np.float32([[image.shape[1]/2 - dst_size, image.shape[0] - bottom_offset],
+                  [image.shape[1]/2 + dst_size, image.shape[0] - bottom_offset],
+                  [image.shape[1]/2 + dst_size, image.shape[0] - 2*dst_size - bottom_offset], 
+                  [image.shape[1]/2 - dst_size, image.shape[0] - 2*dst_size - bottom_offset],
+                  ])
+    # 2) Apply perspective transform
+	warped = perspect_transform(image, source, destination)
+    # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
+	threshed = color_thresh(warped, (160, 160, 160))
+	rocks_select = detect_rocks(warped)
+	obstacles_select = detect_obstacles(warped, (160, 160, 160))
+    # 4) Update Rover.vision_image (this will be displayed on left side of screen)
+        # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
+        #          Rover.vision_image[:,:,1] = rock_sample color-thresholded binary image
+        #          Rover.vision_image[:,:,2] = navigable terrain color-thresholded binary image
+	Rover.vision_image[:,:,0] = obstacles_select * 255
+	Rover.vision_image[:,:,2] = threshed * 255
+    # 5) Convert map image pixel values to rover-centric coords
+	xpix , ypix = rover_coords(threshed)
+	obstacle_xpix, obstacle_ypix = rover_coords(obstacles_select)
+    # 6) Convert rover-centric pixel values to world coordinates
+	obstacle_x_world, obstacle_y_world = pix_to_world(obstacle_xpix, obstacle_ypix, xpos, ypos, yaw, 200, 10)
+	navigable_x_world, navigable_y_world = pix_to_world(xpix, ypix, xpos, ypos, yaw, 200, 10)
+    # 7) Update Rover worldmap (to be displayed on right side of screen)
+        # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
+        #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
+        #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
+		
+	Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1    
+	Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 10
+
+    # 8) Convert rover-centric pixel positions to polar coordinates
+	dist, angles = to_polar_coords(xpix, ypix)
+    # Update Rover pixel distances and angles
+    # Rover.nav_dists = rover_centric_pixel_distances
+    # Rover.nav_angles = rover_centric_angles
+	Rover.nav_angles = angles
+	if rocks_select.any():
+		rock_xpix, rock_ypix = rover_coords(rocks_select)
+		rock_x_world, rock_y_world = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, 200, 10)
+		
+		rock_dist, rock_angle = to_polar_coords(rock_xpix, rock_xpix)
+		# find the position of first pixel of rock
+		rock_idx = np.argmin(rock_dist)
+		rock_x = rock_x_world[rock_idx]
+		rock_y = rock_y_world[rock_idx]
+		Rover.worldmap[rock_y, rock_x, 1] = 255
+		Rover.vision_image[:,:,1] = rocks_select * 255
+	else:
+		Rover.vision_image[:,:,1] = 0
+    
+	return Rover
+```
+The perception step in file perception.py is similar to the process_image() function from the notebook. It is responsible for taking the Rover state containing current camera image and telemetry data, performing image analysis for detecting navigable terrain, obstacles and rocks and returning the Rover state containing all the processing results. First, the Rover's position and orientation in world frame is extracted from the Rover state class object and then image processing is performed (perspective transform, path/obstacle/rock detection) and a world map consisting of the navigable path, rocks and obstacles is constructed.
+
+One major difference from process_image() is that instead of assigning value 255 in the Red and Blue channels for showing obstacles and navigable terrain respectively, the value is incremented each time a pixel is detected as either as an obstacle or navigable path and the navigable path is given more preference. It means that if a same pixel is detected as an obstacle and navigable path, it will be treated as navigable path. 
+```python
+Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1    
+Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 10
+```
+The navigable pixels are then converted to polar co-ordinates, as the pairs of distance and angle from robot front. These pairs are used by decision step to command the rover.
+
+Finally, due to perspective transform, the rocks get detected as beams, instead of points. To convert these beams to points, only the closest rock pixel is treated as the location of a rock sample
 #### 2. Launching the simulator
 Below is the image of settings used while launching the simulator.
 ![Simulator settings][image3]
