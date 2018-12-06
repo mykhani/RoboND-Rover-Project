@@ -3,6 +3,7 @@
 [image1]: ./images/detecting_rocks.png
 [image2]: ./images/detecting_obstacles.png
 [image3]: ./images/settings.png
+[image4]: ./images/result.png
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 # Search and Sample Return Project (solution)
 
@@ -190,4 +191,4 @@ The decision step function in file decision.py is responsible for sending the th
 Below is the image of settings used while launching the simulator. I have used ubuntu 16.04.5 host running on VMWare virtual machine.
 ![Simulator settings][image3]
 #### 4. Results
-The rover successully detected most of the rock samples and meets the requirements of mapping at least 40% map with more than 60% fidelity. Although at certain times, the robot gets stuck in rocks, in tight locations and sometimes keep circling in circular loops. I plan to improve the decision step bit more in future and to add the functionality of picking and returning the sample to start location.  
+The rover successully detected most of the rock samples and meets the requirements of mapping at least 40% map with more than 60% fidelity. Although at certain times, the robot gets stuck in rocks, in tight locations and sometimes keep circling in circular loops. I plan to improve the decision step bit more in future and to add the functionality of picking and returning the sample to start location.  ![Final result][image4]
