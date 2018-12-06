@@ -100,7 +100,7 @@ Finally the camera image, the transformed image and world map is combined togeth
     output_image[img.shape[0]:, 0:data.worldmap.shape[1]] = np.flipud(map_add)
 ```
 ### Autonomous Navigation and Mapping
-#### 1. Implementing Perception Step
+#### 1. Perception Step
 Here's the final implementation of perception step.
 ```python
 def perception_step(Rover):
@@ -184,7 +184,10 @@ Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 10
 The navigable pixels are then converted to polar co-ordinates, as the pairs of distance and angle from robot front. These pairs are used by decision step to command the rover.
 
 Finally, due to perspective transform, the rocks get detected as beams, instead of points. To convert these beams to points, only the closest rock pixel is treated as the location of a rock sample
-#### 2. Launching the simulator
-Below is the image of settings used while launching the simulator.
+#### 2. Decision Step
+The decision step function in file decision.py is responsible for sending the throttle and steering commands to rover based on the results of perception step. By default, the bare minimum functionality is provided and as of now, I have kept it unchanged to meet the minimum requirement for a passing submission. The logic behind decision making is very simple, the code first checks if there are sufficient (greater or equal to Rover.stop_forward number) navigable terrain pixels in front of the rover and if yes, it sets the forward movement by sending throttle command. Also it takes the average of all the navigable angles (which tends to lie towards bigger cluster of navigable terrain pixels) and use it to set the steer angle command. 
+#### 3. Launching the simulator
+Below is the image of settings used while launching the simulator. I have used ubuntu 16.04.5 host running on VMWare virtual machine.
 ![Simulator settings][image3]
-#### 3. Results
+#### 4. Results
+The rover successully detected most of the rock samples and meets the requirements of mapping at least 40% map with more than 60% fidelity. Although at certain times, the robot gets stuck in rocks, in tight locations and sometimes keep circling in circular loops. I plan to improve the decision step bit more in future and to add the functionality of picking and returning the sample to start location.  
