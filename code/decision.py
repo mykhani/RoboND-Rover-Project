@@ -13,9 +13,21 @@ def decision_step(Rover):
     # Check if we have vision data to make decisions with
     if Rover.nav_angles is not None:
         # Check for Rover.mode status
-        if Rover.mode == 'forward': 
+        if Rover.mode == 'forward':
+            if Rover.found_rock:
+                print("Found Rock, move slowly!")
+                Rover.throttle = 0.1
+
+            if Rover.near_sample == 1:
+                print("Near sample, stop!")
+                Rover.throttle = 0
+                # Set brake to stored brake value
+                Rover.brake = Rover.brake_set
+                Rover.steer = 0
+                Rover.mode = 'stop'
+ 
             # Check the extent of navigable terrain
-            if len(Rover.nav_angles) >= Rover.stop_forward:  
+            elif len(Rover.nav_angles) >= Rover.stop_forward:  
                 # If mode is forward, navigable terrain looks good 
                 # and velocity is below max, then throttle 
                 if Rover.vel < Rover.max_vel:
@@ -38,7 +50,7 @@ def decision_step(Rover):
         # If we're already in "stop" mode then make different decisions
         elif Rover.mode == 'stop':
             # If we're in stop mode but still moving keep braking
-            if Rover.vel > 0.2:
+            if Rover.vel > 0.2 or Rover.near_sample == 1:
                 Rover.throttle = 0
                 Rover.brake = Rover.brake_set
                 Rover.steer = 0
