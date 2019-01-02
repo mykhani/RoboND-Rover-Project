@@ -169,11 +169,17 @@ def perception_step(Rover):
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
 	Rover.nav_angles = angles
+	Rover.nav_dists = dist
 	if rocks_select.any():
+		# rock found
+		Rover.rock_found = True
 		rock_xpix, rock_ypix = rover_coords(rocks_select)
 		rock_x_world, rock_y_world = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, 200, 10)
 		
-		rock_dist, rock_angle = to_polar_coords(rock_xpix, rock_xpix)
+		rock_dist, rock_angles = to_polar_coords(rock_xpix, rock_xpix)
+                # steer towards rock
+		factor = 2
+		Rover.rock_angles = rock_angles 
 		# find the position of first pixel of rock
 		rock_idx = np.argmin(rock_dist)
 		rock_x = rock_x_world[rock_idx]
